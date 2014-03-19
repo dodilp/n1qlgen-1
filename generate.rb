@@ -225,7 +225,7 @@ if generatedata == "all" or generatedata == "purchases"
         STDERR.printf("\n");
         options[:total_records].times do |n|
                 STDERR.printf("Loading purchases ...%10d / %d\r", n + 1, options[:total_records])
-                t = Time.now
+		t = Time.now - ((30 * 24 * 60 * 60) * rand(13))
 
 		num_of_items = rand(5) + 1
 		num_max_per_item_count = 5
