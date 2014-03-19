@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 require 'rubygems'
-require 'couchbase'
 require 'json'
 require 'iso8601'
 require 'pp'
@@ -22,26 +21,12 @@ options = {
   :total_records => 1_000,
   :duplicate_rate => 0,
   :bucket => "eCommerce",
-  :hostname => nil,
-  :username => nil,
-  :password => nil,
   :generatewhat => "all",
   :singlebucket => 1
 }
 
 OptionParser.new do |opts|
   opts.banner = "Usage: generate.rb [options]"
-  opts.on("-h", "--hostname HOSTNAME", "Hostname to connect to (default: 127.0.0.1:8091)") do |v|
-    host, port = v.split(':')
-    options[:hostname] = host.empty? ? '127.0.0.1' : host
-    options[:port] = port.to_i > 0 ? port.to_i : 8091
-  end
-  opts.on("-u", "--user USERNAME", "Username to log with (default: none)") do |v|
-    options[:username] = v
-  end
-  opts.on("-p", "--passwd PASSWORD", "Password to log with (default: none)") do |v|
-    options[:password] = v
-  end
   opts.on("-b", "--bucket NAME", "Name of the bucket to connect to (default: #{options[:bucket]})") do |v|
     options[:bucket] = v
   end
@@ -59,7 +44,6 @@ end.parse!
 
 
 document = nil
-connection = Couchbase.connect(options)
 generatedata = options[:generatewhat]
 
 if generatedata == "all" or generatedata == "customer"
@@ -97,7 +81,6 @@ if generatedata == "all" or generatedata == "customer"
       			:ccInfo => creditcarddoc
   		}
 
-  		connection.set("customer#{n}", document)
   		
 		fJson = File.open("customer/customer#{n}.json","w")
 		fJson.write(document.to_json)
@@ -112,7 +95,6 @@ if generatedata == "all" or generatedata == "products"
 		options[:bucket] = "product"
 	end
 
-	connection = Couchbase.connect(options)
 	
 	json = File.read('sample-products.json')
 	data = JSON.parse(json)
@@ -148,7 +130,6 @@ if generatedata == "all" or generatedata == "products"
 			:reviewList => []
 		}
 		
-		connection.set("product#{n}", document) 
   
 		fJson = File.open("product/product#{n}.json","w")
                 fJson.write(document.to_json)
@@ -162,7 +143,6 @@ if generatedata == "all" or generatedata == "reviews"
         else
                 options[:bucket] = "review"
         end
-        connection = Couchbase.connect(options)
 	options[:total_records] = 10000
 
         STDERR.printf("\n");
@@ -180,7 +160,6 @@ if generatedata == "all" or generatedata == "reviews"
 			:reviewedAt => t.utc.iso8601.to_s,
                 }
 
-                connection.set("review#{n}", document)
   	
 		fJson = File.open("reviews/review#{n}.json","w")
                 fJson.write(document.to_json)
@@ -219,7 +198,6 @@ end
 
 if generatedata == "all" or generatedata == "purchases"
         options[:bucket] = "eCommerce"
-        connection = Couchbase.connect(options)
         options[:total_records] = 50000
 
         STDERR.printf("\n");
@@ -256,7 +234,6 @@ if generatedata == "all" or generatedata == "purchases"
 			:lineItems => arr_products_purchased,
 		}
 
-                connection.set("purchase#{n}", document)
         
 		fJson = File.open("purchases/purchase#{n}.json","w")
                 fJson.write(document.to_json)
